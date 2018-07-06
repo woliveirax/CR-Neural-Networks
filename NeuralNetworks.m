@@ -52,8 +52,6 @@ function NeuralNetworks_OpeningFcn(hObject, eventdata, handles, varargin)
 % handles    structure with handles and user data (see GUIDATA)
 % varargin   command line arguments to NeuralNetworks (see VARARGIN)
 
-set(handles.textPerceptrao,'String','Test');
-
 % Choose default command line output for NeuralNetworks
 handles.output = hObject;
 
@@ -62,6 +60,11 @@ guidata(hObject, handles);
 
 % UIWAIT makes NeuralNetworks wait for user response (see UIRESUME)
 % uiwait(handles.mainPanel);
+
+function initData(handles)
+    
+    
+end
 
 
 % --- Outputs from this function are returned to the command line.
