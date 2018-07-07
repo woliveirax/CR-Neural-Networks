@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 05-Jul-2018 23:55:52
+% Last Modified by GUIDE v2.5 07-Jul-2018 01:30:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -54,7 +54,7 @@ function NeuralNetworks_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for NeuralNetworks
 handles.output = hObject;
-
+initData(handles);
 % Update handles structure
 guidata(hObject, handles);
 
@@ -62,10 +62,25 @@ guidata(hObject, handles);
 % uiwait(handles.mainPanel);
 
 function initData(handles)
+    %Criar Rede Panel
+    set(handles.popupSelectLayers,'String',(1:5));
     
+    %Arquitectura da Rede Panel
     
-end
-
+    %Camada button init
+    set(handles.popupNetLayer,'String','none');
+    set(handles.popupNetLayer,'Enable','off');
+    
+    %Perceptroes textbox init
+    set(handles.textPerceptrao,'String','none');
+    set(handles.textPerceptrao,'Enable','off');
+    
+    %Funcao Trans. Button init
+    set(handles.popupFuncTrans,'String','none');
+    set(handles.popupFuncTrans,'Enable','off');
+    
+    %Treino da Rede Panel
+    
 
 % --- Outputs from this function are returned to the command line.
 function varargout = NeuralNetworks_OutputFcn(hObject, eventdata, handles) 
@@ -150,21 +165,20 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on selection change in popuoNetLayer.
-function popuoNetLayer_Callback(hObject, eventdata, handles)
-% hObject    handle to popuoNetLayer (see GCBO)
+% --- Executes on selection change in popupNetLayer.
+function popupNetLayer_Callback(hObject, eventdata, handles)
+% hObject    handle to popupNetLayer (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns popuoNetLayer contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popuoNetLayer
-data = handles.myData;
-set(hObject,'String',num2str((1:data.MaxLayers)'));
+% Hints: contents = cellstr(get(hObject,'String')) returns popupNetLayer contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupNetLayer
+
 
 
 % --- Executes during object creation, after setting all properties.
-function popuoNetLayer_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to popuoNetLayer (see GCBO)
+function popupNetLayer_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupNetLayer (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -235,3 +249,35 @@ function createNetApplyButton_Callback(hObject, eventdata, handles)
 % hObject    handle to createNetApplyButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --- Executes on selection change in popupmenu15.
+function popupmenu15_Callback(hObject, eventdata, handles)
+% hObject    handle to popupmenu15 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu15 contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupmenu15
+
+
+% --- Executes during object creation, after setting all properties.
+function popupmenu15_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupmenu15 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: popupmenu controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in useAllDataForTraining.
+function useAllDataForTraining_Callback(hObject, eventdata, handles)
+% hObject    handle to useAllDataForTraining (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of useAllDataForTraining

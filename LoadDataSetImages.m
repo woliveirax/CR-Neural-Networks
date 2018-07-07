@@ -8,8 +8,14 @@ function [ out ] = LoadDataSetImages(path)
         imageArray{i,1} = str2num(imageArray{i,1});
         
         image = imread(fullfile(path,a(i).name));
-        imageArray{i,2} = imresize(image,[500 500]);
+        image = imresize(image,[500 500]);
+        image = image(:);
+        
+        imageArray{i,2} = image;
     end
     
+    imageArray = cell2table(imageArray);
     out = imageArray;
+    
+    
 end
