@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 07-Jul-2018 01:30:15
+% Last Modified by GUIDE v2.5 07-Jul-2018 10:00:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -65,8 +65,14 @@ function initData(handles)
     %Criar Rede Panel
     set(handles.popupSelectLayers,'String',(1:5));
     
-    %Arquitectura da Rede Panel
+    %clears net and enable selections
+    handles.createNetButton.UserData = [];
+    handles.createnetButton.Enable  = 'on';
+    handles.popupSelectLayer.Enable = 'on';
+    handles.popupSelectLayer.Value = 1;
     
+    %%Arquitectura da Rede Panel
+
     %Camada button init
     set(handles.popupNetLayer,'String','none');
     set(handles.popupNetLayer,'Enable','off');
@@ -80,8 +86,26 @@ function initData(handles)
     set(handles.popupFuncTrans,'Enable','off');
     
     %Treino da Rede Panel
+    handles.useAllDataCheckBox.Enable = 'off';
+    handles.trainValBox.String = 'none';
+    handles.trainValBox.Enable = 'off';
     
-
+    handles.testValBox.String = 'none';
+    handles.testValBox.Enable = 'off';
+    
+    handles.evalValBox.String = 'none';
+    handles.evalValBox.Enable = 'off';
+    
+    handles.popupTrainDivFunc.String = 'none';
+    handles.popupTrainDivFunc.Enable = 'off';
+    
+    %Buttons
+    handles.netTrainButton.Enable = 'off';
+    handles.netSimButton.Enable = 'off';
+    handles.netViewButton.Enable = 'off';
+    
+    
+    
 % --- Outputs from this function are returned to the command line.
 function varargout = NeuralNetworks_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -167,13 +191,8 @@ end
 
 % --- Executes on selection change in popupNetLayer.
 function popupNetLayer_Callback(hObject, eventdata, handles)
-% hObject    handle to popupNetLayer (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns popupNetLayer contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupNetLayer
-
+PerceptronTextUpdate(handles);
+TransfButtonUpdate(handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -216,12 +235,7 @@ end
 
 % --- Executes on selection change in popupFuncTrans.
 function popupFuncTrans_Callback(hObject, eventdata, handles)
-% hObject    handle to popupFuncTrans (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns popupFuncTrans contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupFuncTrans
+TransfButtonUpdate(handles); %Check end of file
 
 
 % --- Executes during object creation, after setting all properties.
@@ -237,33 +251,121 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in netApplyButton.
-function netApplyButton_Callback(hObject, eventdata, handles)
-% hObject    handle to netApplyButton (see GCBO)
+% --- Executes on button press in netTrainButton.
+function netTrainButton_Callback(hObject, eventdata, handles)
+% hObject    handle to netTrainButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
-% --- Executes on button press in createNetApplyButton.
-function createNetApplyButton_Callback(hObject, eventdata, handles)
-% hObject    handle to createNetApplyButton (see GCBO)
+% --- Executes on button press in createNetButton.
+function createNetButton_Callback(hObject, eventdata, handles)
+
+%Create net using netSize input from popupBox
+netSize = handles.popupSelectLayers.Value;
+net = feedforwardnet([1:netSize]);
+net.layers{1:netSize}.dimensions = 10;
+
+%Store net on button userdata 
+hObject.UserData = net;
+hObject.Enable = 'off';
+handles.popupSelectLayers.Enable = 'off';
+UpdateNetConfigForm(handles);
+
+
+    
+    
+% --- Executes on button press in useAllDataCheckBox.
+function useAllDataCheckBox_Callback(hObject, eventdata, handles)
+% hObject    handle to useAllDataCheckBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+% Hint: get(hObject,'Value') returns toggle state of useAllDataCheckBox
 
-% --- Executes on selection change in popupmenu15.
-function popupmenu15_Callback(hObject, eventdata, handles)
-% hObject    handle to popupmenu15 (see GCBO)
+
+
+function trainValBox_Callback(hObject, eventdata, handles)
+% hObject    handle to trainValBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: contents = cellstr(get(hObject,'String')) returns popupmenu15 contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from popupmenu15
+% Hints: get(hObject,'String') returns contents of trainValBox as text
+%        str2double(get(hObject,'String')) returns contents of trainValBox as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function popupmenu15_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to popupmenu15 (see GCBO)
+function trainValBox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to trainValBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function testValBox_Callback(hObject, eventdata, handles)
+% hObject    handle to testValBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of testValBox as text
+%        str2double(get(hObject,'String')) returns contents of testValBox as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function testValBox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to testValBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function evalValBox_Callback(hObject, eventdata, handles)
+% hObject    handle to evalValBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of evalValBox as text
+%        str2double(get(hObject,'String')) returns contents of evalValBox as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function evalValBox_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to evalValBox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on selection change in popupTrainDivFunc.
+function popupTrainDivFunc_Callback(hObject, eventdata, handles)
+% hObject    handle to popupTrainDivFunc (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns popupTrainDivFunc contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from popupTrainDivFunc
+
+
+% --- Executes during object creation, after setting all properties.
+function popupTrainDivFunc_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to popupTrainDivFunc (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -274,10 +376,92 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in useAllDataForTraining.
-function useAllDataForTraining_Callback(hObject, eventdata, handles)
-% hObject    handle to useAllDataForTraining (see GCBO)
+% --- Executes on button press in netSimButton.
+function netSimButton_Callback(hObject, eventdata, handles)
+% hObject    handle to netSimButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of useAllDataForTraining
+
+% --- Executes on button press in netViewButton.
+function netViewButton_Callback(hObject, eventdata, handles)
+% hObject    handle to netViewButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%My Funcs
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+function UpdateNetConfigForm(handles)
+    
+%%Arquitectura da Rede Panel
+
+%Camada button update
+SelectedLayerUpdate(handles);
+set(handles.popupNetLayer,'Enable','on');
+
+%Perceptroes textbox init
+PerceptronTextUpdate(handles);
+set(handles.textPerceptrao,'Enable','on');
+
+%Funcao Trans. Button init
+TransfButtonUpdate(handles);
+set(handles.popupFuncTrans,'Enable','on');
+
+%Treino da Rede Panel
+handles.useAllDataCheckBox.Enable = 'on';
+handles.useAllDataCheckBox.Value = 1;
+
+handles.trainValBox.String = '80';
+handles.trainValBox.Enable = 'off';
+
+handles.testValBox.String = '10';
+handles.testValBox.Enable = 'off';
+
+handles.evalValBox.String = '10';
+handles.evalValBox.Enable = 'off';
+
+handles.popupTrainDivFunc.String = 'none';
+handles.popupTrainDivFunc.Enable = 'on';
+
+%Buttons
+handles.netTrainButton.Enable = 'off';
+handles.netSimButton.Enable = 'off';
+handles.netViewButton.Enable = 'off';
+
+    
+function TransfButtonUpdate(handles)
+data = handles.createNetButton.UserData; %get net
+selected = handles.popupNetLayer.Value;   %get selected layer
+fcn = data.layers{selected}.transferFcn;   %ged dimensions from selected layer
+
+options = {'tansig','logsig','purelin'};
+options = options';
+set(handles.popupFuncTrans,'String',options);
+selected = handles.popupFuncTrans.Value;
+
+if(strcmpi(fcn,handles.popupFuncTrans.String{selected}) == true)
+    handles.popupFuncTrans.ForegroundColor = 'blue';
+else
+    handles.popupFuncTrans.ForegroundColor = 'black';
+end
+
+function PerceptronTextUpdate(handles)
+data = handles.createNetButton.UserData;  %get net
+selected = handles.popupNetLayer.Value;   %get selected layer
+dim = data.layers{selected}.dimensions;   %ged dimensions from selected layer
+
+set(handles.textPerceptrao,'String',num2str(dim));
+
+function SelectedLayerUpdate(handles)
+val = handles.popupSelectLayers.Value;
+array = cell(val + 1,1);
+for i=1:val
+    array{i,1} = i;
+end
+array{val + 1,1} = 'output';
+
+handles.popupNetLayer.String = array(:,1);
