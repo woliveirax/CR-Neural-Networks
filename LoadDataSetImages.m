@@ -9,7 +9,7 @@ function [ out ] = LoadDataSetImages(path)
         
         image = imread(fullfile(path,a(i).name));
         image = imresize(image,[500 500]);
-        image = image(:);
+        image = image(:)';
         
         imageArray{i,2} = image;
     end
