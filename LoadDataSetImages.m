@@ -16,6 +16,4 @@ function [ out ] = LoadDataSetImages(path)
     
     imageArray = cell2table(imageArray);
     out = imageArray;
-    
-    
 end

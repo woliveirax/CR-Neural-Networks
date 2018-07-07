@@ -5,7 +5,6 @@ function [target,input] = PrepareTargetForTraining()
     
     dataImages = LoadDataSetImages('.\Resources\folha_1');
     dataClassifications = ReadLeafExcelData('.\Resources\leaf.xlsx');
-    dataClassifications(1,:) = [];
     
     input = dataImages(:,2);
     

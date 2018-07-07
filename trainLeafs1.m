@@ -1,8 +1,5 @@
 [target input] = PrepareTargetForTraining();
 
-% test = zeros(99, 1000);
-% test = test';
-
 net = feedforwardnet();
 input = table2array(input);
 input = double(input);
@@ -16,7 +13,7 @@ view(net);
 disp(tr)
 
 out = sim(net, input);
-
+    %%ADD EPOCHS
 axis off;
 plotconfusion(target, out); % Matriz de confusao
 

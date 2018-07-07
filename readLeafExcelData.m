@@ -1,4 +1,4 @@
-function data = readLeafExcelData(workbookFile, sheetName, range)
+function data = ReadLeafExcelData(workbookFile, sheetName, range)
 %IMPORTFILE Import data from a spreadsheet
 %   DATA = IMPORTFILE(FILE) reads data from the first worksheet in the
 %   Microsoft Excel spreadsheet file named FILE and returns the data as a
@@ -32,3 +32,20 @@ end
 [~, ~, data] = xlsread(workbookFile, sheetName, range);
 data(cellfun(@(x) ~isempty(x) && isnumeric(x) && isnan(x),data)) = {''};
 
+data(1,:) = []; % Remove titles
+data(numel(data(:,2)),3) = {[]}; % Create a new column
+
+for i = 1:numel(data(:,2)) %Separate species from subspecies
+    split = strsplit(data{i,2},'_');
+    data{i,3} = data{i,2};
+    data{i,2} = split{1};
+%     s = size(split);
+%     if(s(2) > 1)
+%         data{i,3} = split{2};
+%     end
+%     
+%     if(s(2) > 2)
+%         data{i,3} = split{3}
+%     end
+    split = [];
+end
