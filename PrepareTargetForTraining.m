@@ -2,7 +2,7 @@ function [target input] = PrepareTargetForTraining(imgs_path, excell_path, bool_
 
 %%Obter info
 %if(!bool_datset) %verificar s info encontra-se em dataset
-dataImages = LoadDataSetImages(imgs_path,1);
+dataImages = LoadDataSetImages(imgs_path,0);
 dataClassifications = ReadLeafExcelData(excell_path);
 
 input = dataImages(:,2);
