@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 07-Jul-2018 20:06:22
+% Last Modified by GUIDE v2.5 08-Jul-2018 17:53:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -56,6 +56,14 @@ function NeuralNetworks_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 handles.createNetButton.Value = false;
 initData(handles);
+
+data.images = [];
+data.excelData = [];
+data.output = [];
+data.net = [];
+data.temp = [];
+
+handles.myData = data;
 % Update handles structure
 guidata(hObject, handles);
 
@@ -70,13 +78,13 @@ function initData(handles)
     handles.createNetButton.UserData = [];
     handles.createnetButton.Enable  = 'on';
     handles.popupSelectLayer.Enable = 'on';
-    handles.popupSelectLayer.Value = 1;
     
     %%Arquitectura da Rede Panel
     
     %Camada button init
     set(handles.popupNetLayer,'String','none');
     set(handles.popupNetLayer,'Enable','off');
+    handles.popupNetLayer.Value = 1;
     
     %Perceptroes textbox init
     set(handles.textPerceptrao,'String','none');
@@ -85,6 +93,7 @@ function initData(handles)
     %Funcao Trans. Button init
     set(handles.popupFuncTrans,'String','none');
     set(handles.popupFuncTrans,'Enable','off');
+    handles.popupFuncTrans.Value = 1;
     
     
     handles.buttonApplyChangesArch.Enable = 'off';
@@ -101,6 +110,7 @@ function initData(handles)
     handles.evalValBox.Enable = 'off';
     
     handles.popupTrainFunc.String = 'none';
+    handles.popupTrainFunc.Value  = 1;
     handles.popupTrainFunc.Enable = 'off';
     
     handles.textEpoch.String = 'none';
@@ -135,30 +145,58 @@ function barMenuFile_Callback(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function barMenuLoad_Callback(hObject, eventdata, handles)
-% hObject    handle to barMenuLoad (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+[file,path] = uigetfile('*.mat','Select file to Load');
+
+if(isequal(file,0) || isequal(path,0))
+    return;
+end
+
+try
+   load(fullfile(path,file),'net');
+catch err
+    msgbox('Não foi possivel carregar a rede! error:' + err.message,'Erro','error');
+    return;
+end
+handles.createNetButton.Value=true;
+updateCreatNetButton(handles);
+handles.createNetButton.UserData = net;
+UpdateEpochs(handles);
+SelectedLayerUpdate(handles);
+UpdateTrainingFuncs(handles);
+TransfButtonUpdate(handles);
+PerceptronTextUpdate(handles);
+msgbox('rede carregada com sucesso!','Sucesso','help');
 
 
 % --------------------------------------------------------------------
 function menuBarAbout_Callback(hObject, eventdata, handles)
-% hObject    handle to menuBarAbout (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+
+
 
 
 % --------------------------------------------------------------------
 function menuBarSave_Callback(hObject, eventdata, handles)
-% hObject    handle to menuBarSave (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+net = handles.createNetButton.UserData;
+[file,path] = uiputfile('*.mat','Save File','net');
+
+if(isequal(file,0) || isequal(path,0))
+    return;
+end
+
+try
+   save(fullfile(path,file),'net');
+catch err
+    msgbox('Não foi possivel guardar a rede! error:' + err.message,'Erro','error');
+    return;
+end
+msgbox('rede guardada com sucesso!','Sucesso','help');
+
+
 
 
 % --------------------------------------------------------------------
 function menuBarQuit_Callback(hObject, eventdata, handles)
-% hObject    handle to menuBarQuit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+close all;
 
 
 % --------------------------------------------------------------------
@@ -220,13 +258,11 @@ end
 
 
 function textPerceptrao_Callback(hObject, eventdata, handles)
-% hObject    handle to textPerceptrao (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+val = str2double(hObject.String);
 
-% Hints: get(hObject,'String') returns contents of textPerceptrao as text
-%        str2double(get(hObject,'String')) returns contents of textPerceptrao as a double
-
+if( val < 2 || val > 100)
+    hObject.String = '10';
+end
 
 % --- Executes during object creation, after setting all properties.
 function textPerceptrao_CreateFcn(hObject, eventdata, handles)
@@ -262,35 +298,70 @@ end
 
 % --- Executes on button press in netTrainButton.
 function netTrainButton_Callback(hObject, eventdata, handles)
-% hObject    handle to netTrainButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+if(isempty(handles.myData.images))
+    %'Ficheiros para treino não existem. Por favor, importe os dados!'
+    msgbox('Ficheiros para treino não existem. Por favor, importe os dados!','Erro','error');
+    %importImageData_Callback(hObject.importImageData, eventdata, handles);
+    return;
+end
+
+%Get type of evaluation
+choice = find([handles.radioSpecie ...
+        handles.radioSubspecie] == get(handles.buttonGroupCat,'SelectedObject'));
+
+specie = 1;
+subspecie = 2;
+
+images  = handles.myData.images;
+data    = handles.myData.excelData;
+
+switch(choice)
+    case specie
+        [target input] = PrepareTargetForTraining(images,data,0);
+        
+    case subspecie
+        [target input] = PrepareTargetForTraining(images,data,1);
+end
+
+%get net from data
+net = handles.createNetButton.UserData;
+[net,tr] = train(net, input, target);
+
+view(net);
+disp(tr);
+
+handles.createNetButton.UserData = net;
+
 
 
 % --- Executes on button press in createNetButton.
 function createNetButton_Callback(hObject, eventdata, handles)
 %Create net using netSize input from popupBox
-if(hObject.Value == true)
+updateCreatNetButton(handles);
+
+
+function updateCreatNetButton(handles)
+obj = handles.createNetButton;
+if(obj.Value == true)
     netSize = handles.popupSelectLayers.Value;
     net = feedforwardnet([1:netSize]);
     net.layers{1:netSize}.dimensions = 10;
 
     %Store net on button userdata 
-    hObject.UserData = net;
-    hObject.String = 'Recriar';
-    hObject.FontWeight = 'bold';
-    hObject.ForegroundColor = 'red';
+    obj.UserData = net;
+    obj.String = 'Recriar';
+    obj.FontWeight = 'bold';
+    obj.ForegroundColor = 'red';
     handles.popupSelectLayers.Enable = 'off';
+    handles.menuBarSave.Enable = 'on';
     UpdateNetConfigForm(handles);
 else
-    hObject.String = 'Criar Rede';
-    hObject.ForegroundColor = 'black';
-    hObject.FontWeight = 'normal';
+    obj.String = 'Criar Rede';
+    obj.ForegroundColor = 'black';
+    obj.FontWeight = 'normal';
     handles.popupSelectLayers.Enable = 'on';
     initData(handles);
 end
-
-    
 
 % --- Executes on button press in useAllDataCheckBox.
 function useAllDataCheckBox_Callback(hObject, eventdata, handles)
@@ -307,6 +378,8 @@ if(hObject.Value == true)
     handles.testValBox.String = '0';
     handles.evalValBox.String = '0';
     
+    handles.buttonApplyTrainChanges.Enable = 'on';
+    
 else
     net = handles.createNetButton.UserData;
     net.divideFcn = 'dividerand';
@@ -314,6 +387,7 @@ else
     handles.trainValBox.Enable = 'on';
     handles.testValBox.Enable = 'on';
     handles.evalValBox.Enable = 'on';
+    handles.buttonApplyTrainChanges.Enable = 'off';
     
     handles.createNetButton.UserData = net;
 end
@@ -321,13 +395,27 @@ end
 
 
 function trainValBox_Callback(hObject, eventdata, handles)
-% hObject    handle to trainValBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of trainValBox as text
-%        str2double(get(hObject,'String')) returns contents of trainValBox as a double
-
+val = str2double(hObject.String);
+if( val < 0 || val > 100)
+    hObject.String = '0';
+else
+    if(val == 100)
+        handles.useAllDataCheckBox.Value = true;
+        useAllDataCheckBox_Callback(handles.useAllDataCheckBox, eventdata, handles);
+    else
+        train = str2double(handles.trainValBox.String)/100;
+        test  = str2double(handles.testValBox.String)/100;
+        eval  = str2double(handles.evalValBox.String)/100;
+        
+        if((train + test + eval) == 1)
+            handles.buttonApplyTrainChanges.Enable = 'on';
+        else
+            handles.buttonApplyTrainChanges.Enable = 'off';
+        end
+    end
+end
+        
+    
 
 % --- Executes during object creation, after setting all properties.
 function trainValBox_CreateFcn(hObject, eventdata, handles)
@@ -344,13 +432,21 @@ end
 
 
 function testValBox_Callback(hObject, eventdata, handles)
-% hObject    handle to testValBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of testValBox as text
-%        str2double(get(hObject,'String')) returns contents of testValBox as a double
-
+val = str2double(hObject.String);
+if( val < 0 || val > 100)
+    hObject.String = '0';
+else
+    train = str2double(handles.trainValBox.String)/100;
+    test  = str2double(handles.testValBox.String)/100;
+    eval  = str2double(handles.evalValBox.String)/100;
+    
+    if((train + test + eval) == 1)
+        handles.buttonApplyTrainChanges.Enable = 'on';
+    else
+        handles.buttonApplyTrainChanges.Enable = 'off';
+    end
+end
+        
 
 % --- Executes during object creation, after setting all properties.
 function testValBox_CreateFcn(hObject, eventdata, handles)
@@ -367,12 +463,20 @@ end
 
 
 function evalValBox_Callback(hObject, eventdata, handles)
-% hObject    handle to evalValBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of evalValBox as text
-%        str2double(get(hObject,'String')) returns contents of evalValBox as a double
+val = str2double(hObject.String);
+if( val < 0 || val > 100)
+    hObject.String = '0';
+else
+    train = str2double(handles.trainValBox.String)/100;
+    test  = str2double(handles.testValBox.String)/100;
+    eval  = str2double(handles.evalValBox.String)/100;
+    
+    if((train + test + eval) == 1)
+        handles.buttonApplyTrainChanges.Enable = 'on';
+    else
+        handles.buttonApplyTrainChanges.Enable = 'off';
+    end
+end
 
 
 % --- Executes during object creation, after setting all properties.
@@ -414,9 +518,61 @@ function netSimButton_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in netViewButton.
 function netViewButton_Callback(hObject, eventdata, handles)
-% hObject    handle to netViewButton (see GCBO)
+net = handles.createNetButton.UserData;
+view(net);
+
+
+
+function textEpoch_Callback(hObject, eventdata, handles)
+val = str2double(hObject.String);
+
+if( val < 10 || val > 1000)
+    hObject.String = '1000';
+end
+        
+
+
+% --- Executes during object creation, after setting all properties.
+function textEpoch_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to textEpoch (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes on button press in buttonApplyTrainChanges.
+function buttonApplyTrainChanges_Callback(hObject, eventdata, handles)
+net = handles.createNetButton.UserData;  %get net
+index = handles.popupTrainFunc.Value;
+train = handles.popupTrainFunc.String{index};
+
+net.trainFcn = train;
+net.trainParam.epochs = str2double(handles.textEpoch.String);
+
+handles.createNetButton.UserData = net;
+UpdateTrainingFuncs(handles);
+
+
+
+% --- Executes on button press in buttonApplyChangesArch.
+function buttonApplyChangesArch_Callback(hObject, eventdata, handles)
+net = handles.createNetButton.UserData;  %get net
+selected = handles.popupNetLayer.Value;  %get selected layer
+index = handles.popupFuncTrans.Value;
+activation = handles.popupFuncTrans.String{index};
+
+net.layers{selected}.dimensions = str2num(handles.textPerceptrao.String);
+net.layers{selected}.transferFcn = activation;
+
+handles.createNetButton.UserData = net;
+
+PerceptronTextUpdate(handles);
+TransfButtonUpdate(handles);
 
 
 
@@ -456,16 +612,17 @@ handles.evalValBox.String = '0';
 handles.evalValBox.Enable = 'off';
 
 handles.textEpoch.Enable = 'on';
-handles.textEpoch.String = '1';
+%handles.textEpoch.String = '1000';
+UpdateEpochs(handles);
 handles.buttonApplyTrainChanges.Enable = 'on';
 
 UpdateTrainingFuncs(handles);
 handles.popupTrainFunc.Enable = 'on';
 
 %Buttons
-handles.netTrainButton.Enable = 'off';
+handles.netTrainButton.Enable = 'on';
 handles.netSimButton.Enable = 'off';
-handles.netViewButton.Enable = 'off';
+handles.netViewButton.Enable = 'on';
 
 %Transfer popup drop down updater
 function TransfButtonUpdate(handles)
@@ -501,6 +658,8 @@ array{val + 1,1} = 'output';
 
 handles.popupNetLayer.String = array(:,1);
 
+
+
 %Function to fill popup boxes when network is createdw
 function FillDataBoxes(handles)
 
@@ -529,38 +688,66 @@ else
 end
 
 
+% 
+% try  
+%     handles.myData.images = LoadDataSetImages(path);
+% catch err
+%     msgbox('Não foi possível importar as imagens!','Erro','error');
+% end
+% 
+% msgbox('Imagens importadas com sucesso!','Sucesso','help');
 
-function textEpoch_Callback(hObject, eventdata, handles)
-% hObject    handle to textEpoch (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of textEpoch as text
-%        str2double(get(hObject,'String')) returns contents of textEpoch as a double
+% --- Executes on button press in importImageData.
+% function importExcelData_Callback(hObject, eventdata, handles)
+% [filename path] = uigetfile(fullfile(pwd,'Resources','*.xls;*.xlsx'),'Selecione um ficheiro');
+% fullpath = fullfile(path,filename);
+% 
+% if(isequal(path,0)|| isequal(filename,0))
+%     msgbox('Ficheiro não existe','Erro','error');
+%     return;
+% end
+% 
+% handles.myData.excelData = fullpath;
+% try
+%     handles.myData.excelData = LoadDataSetImages(fullpath);
+% catch err
+%     msgbox('Não foi possível importar os dados do ficheiro!','Erro','error');
+%     return;
+% end
+% 
+% msgbox('Dados Importados com sucesso!','Sucesso','help');
 
 
-% --- Executes during object creation, after setting all properties.
-function textEpoch_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to textEpoch (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
+% --- Executes on button press in importImageData.
+function importImageData_Callback(hObject, eventdata, handles)
+path = uigetdir('.\Resources\','Selecione o repositorio de imagens');
+if(isequal(path,0))
+    return;
 end
+handles.myData.images = path;
+
+[filename path] = uigetfile(fullfile(pwd,'Resources','*.xls;*.xlsx'),'Selecione um ficheiro');
+fullpath = fullfile(path,filename);
+
+if(isequal(path,0)|| isequal(filename,0))
+    msgbox('Ficheiro não existe','Erro','error');
+    handles.myData.images = [];
+    return;
+end
+handles.myData.excelData = fullpath;
+guidata(hObject, handles);
 
 
-% --- Executes on button press in buttonApplyTrainChanges.
-function buttonApplyTrainChanges_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonApplyTrainChanges (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+function UpdateEpochs(handles)
+net = handles.createNetButton.UserData;
+val = net.trainParam.epochs;
+
+handles.textEpoch.String = val;
+
+% --- Executes on button press in radioSpecie.
+function radioSpecie_Callback(hObject, eventdata, handles)
 
 
-% --- Executes on button press in buttonApplyChangesArch.
-function buttonApplyChangesArch_Callback(hObject, eventdata, handles)
-% hObject    handle to buttonApplyChangesArch (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+% --- Executes on button press in radioSubspecie.
+function radioSubspecie_Callback(hObject, eventdata, handles)
