@@ -361,6 +361,7 @@ if(obj.Value == true)
     netSize = handles.popupSelectLayers.Value;
     net = feedforwardnet([1:netSize]);
     net.layers{1:netSize}.dimensions = 10;
+    net.trainFcn = 'traingdx';
 
     %Store net on button userdata 
     obj.UserData = net;
@@ -541,11 +542,13 @@ plotconfusion(target, out);
 set(handles.resultsTable,'Data',[]);
 
 [x,y,z,w] = confusion(target, out);
-y=y'
+y=y';
 
 %y = num2cell(y);
 
 set(handles.resultsTable,'Data',y);
+
+handles.textPrecision.String = strcat('Precisão: ',num2str(round(GetPrecision(target,out),2)),'%');
 
 plotperf(tr);
 handles.runNetworkButton.Enable = 'on';
@@ -700,12 +703,12 @@ handles.popupNetLayer.String = array(:,1);
 function FillDataBoxes(handles)
 
 %Fill Transfer func PopUp
-options = {'tansig','logsig','purelin','hardlim','hardlims'};
+options = {'tansig','logsig','purelin','hardlim','tribas'};
 options = options';
 set(handles.popupFuncTrans,'String',options);
 
 options = [];
-options = {'traingd','traingdx','trainlm'};
+options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgf'};
 options = options';
 set(handles.popupTrainFunc,'String',options);
 
