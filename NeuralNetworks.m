@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 08-Jul-2018 17:53:49
+% Last Modified by GUIDE v2.5 08-Jul-2018 21:57:13
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -59,9 +59,9 @@ initData(handles);
 
 data.images = [];
 data.excelData = [];
-data.output = [];
-data.net = [];
-data.temp = [];
+data.input = [];
+data.target = [];
+data.tr = [];
 
 handles.myData = data;
 % Update handles structure
@@ -122,6 +122,7 @@ function initData(handles)
     handles.netTrainButton.Enable = 'off';
     handles.netSimButton.Enable = 'off';
     handles.netViewButton.Enable = 'off';
+    handles.runNetworkButton.Enable = 'off';
     
     
     
@@ -159,12 +160,17 @@ catch err
 end
 handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
+
+handles.runNetworkButton.Enable = 'on';
 handles.createNetButton.UserData = net;
+
+%Update UI
 UpdateEpochs(handles);
 SelectedLayerUpdate(handles);
 UpdateTrainingFuncs(handles);
 TransfButtonUpdate(handles);
 PerceptronTextUpdate(handles);
+
 msgbox('rede carregada com sucesso!','Sucesso','help');
 
 
@@ -332,6 +338,15 @@ disp(tr);
 
 handles.createNetButton.UserData = net;
 
+handles.myData.tr = tr;
+handles.myData.input = input;
+handles.myData.target = target;
+guidata(hObject, handles);
+
+handles.netSimButton.Enable = 'on';
+
+
+
 
 
 % --- Executes on button press in createNetButton.
@@ -360,6 +375,7 @@ else
     obj.ForegroundColor = 'black';
     obj.FontWeight = 'normal';
     handles.popupSelectLayers.Enable = 'on';
+    handles.menuBarSave.Enable = 'off';
     initData(handles);
 end
 
@@ -511,9 +527,29 @@ end
 
 % --- Executes on button press in netSimButton.
 function netSimButton_Callback(hObject, eventdata, handles)
-% hObject    handle to netSimButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+net = handles.createNetButton.UserData;
+
+tr      = handles.myData.tr;
+input   = handles.myData.input;
+target  = handles.myData.target;
+
+out = sim(net, input);
+axis off;
+a = figure;
+plotconfusion(target, out);
+
+set(handles.resultsTable,'Data',[]);
+
+[x,y,z,w] = confusion(target, out);
+y=y'
+
+%y = num2cell(y);
+
+set(handles.resultsTable,'Data',y);
+
+plotperf(tr);
+handles.runNetworkButton.Enable = 'on';
+
 
 
 % --- Executes on button press in netViewButton.
@@ -751,3 +787,40 @@ function radioSpecie_Callback(hObject, eventdata, handles)
 
 % --- Executes on button press in radioSubspecie.
 function radioSubspecie_Callback(hObject, eventdata, handles)
+
+
+% --------------------------------------------------------------------
+function createDrawing_ClickedCallback(hObject, eventdata, handles)
+a = figure;
+draw_leaf();
+
+
+% --- Executes on button press in runNetworkButton.
+function runNetworkButton_Callback(hObject, eventdata, handles)
+if(isempty(handles.myData.images))
+    %'Ficheiros para treino não existem. Por favor, importe os dados!'
+    msgbox('Input inexistente. Por favor, importe os dados para poder iniciar os testes!','Erro','error');
+    %importImageData_Callback(hObject.importImageData, eventdata, handles);
+    return;
+end
+
+input =  LoadDataSetImages(imgs_path,1);
+
+net = handles.createNetButton.UserData;
+
+out = net(input);
+
+handles.myData.out = out;
+guidata(hObject,handles);
+
+
+% --- Executes when entered data in editable cell(s) in resultsTable.
+function resultsTable_CellEditCallback(hObject, eventdata, handles)
+% hObject    handle to resultsTable (see GCBO)
+% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
+%	Indices: row and column indices of the cell(s) edited
+%	PreviousData: previous data for the cell(s) edited
+%	EditData: string(s) entered by the user
+%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
+%	Error: error string when failed to convert EditData to appropriate value for Data
+% handles    structure with handles and user data (see GUIDATA)

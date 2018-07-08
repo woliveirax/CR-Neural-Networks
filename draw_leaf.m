@@ -1,10 +1,9 @@
 function draw_leaf() 
-clc;	% Clear command window.
- clear;	% Delete all variables.
- close all;	% Close all figure windows except those created by imtool.
- imtool close all;	% Close all figure windows created by imtool.
+%%clc;	% Clear command window.
+%clear;	% Delete all variables.
+%close all;	% Close all figure windows except those created by imtool.
+%imtool close all;	% Close all figure windows created by imtool.
 % workspace;	% Make sure the workspace panel is showing.
-
 fig = gcf;
 fig.Color='black';
 fig.InvertHardcopy = 'off';
