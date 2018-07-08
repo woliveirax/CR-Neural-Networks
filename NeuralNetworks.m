@@ -708,7 +708,7 @@ options = options';
 set(handles.popupFuncTrans,'String',options);
 
 options = [];
-options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgf'};
+options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgb','traincgf','trainbr','trainbfg','trainbfgc'};
 options = options';
 set(handles.popupTrainFunc,'String',options);
 
