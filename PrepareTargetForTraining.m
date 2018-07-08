@@ -16,6 +16,7 @@ tab_species{1,numel(input)}=[];
 
 %%Função:
 %species_count = 1;
+data_xlsx_pos = 2+bool_subspecie;
 
 for i = 1:numel(input)
     id = dataImages{i,1};
@@ -27,11 +28,7 @@ for i = 1:numel(input)
         in = dataClassifications{j,1};
         
         if( in == id )
-            if(bool_subspecie)
-                specie = dataClassifications(j,3);
-            else
-                specie = dataClassifications(j,2);
-            end
+            specie = dataClassifications(j,data_xlsx_pos);
             break;
         end
         
@@ -65,4 +62,8 @@ for i = 1:numel(input)
 end
 
 target( all(~target,2),:)=[]; % remove linhas com tudo a zero(vazias)
+input = table2array(input);
+input = double(input);
+input = input';
+
 end
