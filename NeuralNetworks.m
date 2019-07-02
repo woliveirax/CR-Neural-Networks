@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 08-Jul-2018 21:57:13
+% Last Modified by GUIDE v2.5 30-Jun-2019 04:36:40
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,8 +57,12 @@ handles.output = hObject;
 handles.createNetButton.Value = false;
 initData(handles);
 
-data.images = [];
-data.excelData = [];
+data.images.Square = [];
+data.images.Circle = [];
+data.images.Star = [];
+data.images.Triangle = [];
+data.images.Single = [];
+
 data.input = [];
 data.target = [];
 data.tr = [];
@@ -123,6 +127,15 @@ function initData(handles)
     handles.netSimButton.Enable = 'off';
     handles.netViewButton.Enable = 'off';
     handles.runNetworkButton.Enable = 'off';
+    handles.runNetworkSpecificButton.Enable = 'off';
+    
+    %Confusion Table
+    set(handles.confusionMatrixTable,'xtick',[])
+    set(handles.confusionMatrixTable,'xticklabel',[])
+    set(handles.confusionMatrixTable,'ytick',[])
+    set(handles.confusionMatrixTable,'yticklabel',[])
+    
+    handles.confusionMatrixTable.Visible = 'off';
     
     
     
@@ -158,10 +171,12 @@ catch err
     msgbox('Não foi possivel carregar a rede! error:' + err.message,'Erro','error');
     return;
 end
+
 handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
 
-handles.runNetworkButton.Enable = 'on';
+%handles.runNetworkButton.Enable = 'on';
+%handles.runNetworkSpecificButton.Enable = 'on';
 handles.createNetButton.UserData = net;
 
 %Update UI
@@ -176,8 +191,6 @@ msgbox('rede carregada com sucesso!','Sucesso','help');
 
 % --------------------------------------------------------------------
 function menuBarAbout_Callback(hObject, eventdata, handles)
-
-
 
 
 % --------------------------------------------------------------------
@@ -304,30 +317,16 @@ end
 
 % --- Executes on button press in netTrainButton.
 function netTrainButton_Callback(hObject, eventdata, handles)
+
+%Check if there are data to train
 if(isempty(handles.myData.images))
-    %'Ficheiros para treino não existem. Por favor, importe os dados!'
     msgbox('Ficheiros para treino não existem. Por favor, importe os dados!','Erro','error');
-    %importImageData_Callback(hObject.importImageData, eventdata, handles);
     return;
 end
 
-%Get type of evaluation
-choice = find([handles.radioSpecie ...
-        handles.radioSubspecie] == get(handles.buttonGroupCat,'SelectedObject'));
-
-specie = 1;
-subspecie = 2;
-
+%prepare data for training [ sort data add ID to images and etc ]
 images  = handles.myData.images;
-data    = handles.myData.excelData;
-
-switch(choice)
-    case specie
-        [target input] = PrepareTargetForTraining(images,data,0);
-        
-    case subspecie
-        [target input] = PrepareTargetForTraining(images,data,1);
-end
+[target input] = PrepareTargetForTraining(images,data,0);
 
 %get net from data
 net = handles.createNetButton.UserData;
@@ -344,8 +343,6 @@ handles.myData.target = target;
 guidata(hObject, handles);
 
 handles.netSimButton.Enable = 'on';
-
-
 
 
 
@@ -543,8 +540,6 @@ set(handles.resultsTable,'Data',[]);
 
 [x,y,z,w] = confusion(target, out);
 y=y';
-
-%y = num2cell(y);
 
 set(handles.resultsTable,'Data',y);
 
@@ -764,39 +759,20 @@ path = uigetdir('.\Resources\','Selecione o repositorio de imagens');
 if(isequal(path,0))
     return;
 end
-handles.myData.images = path;
 
-[filename path] = uigetfile(fullfile(pwd,'Resources','*.xls;*.xlsx'),'Selecione um ficheiro');
-fullpath = fullfile(path,filename);
-
-if(isequal(path,0)|| isequal(filename,0))
-    msgbox('Ficheiro não existe','Erro','error');
-    handles.myData.images = [];
-    return;
-end
-handles.myData.excelData = fullpath;
 guidata(hObject, handles);
 
-
+%%Updates Current Training Epochs on the GUI.
 function UpdateEpochs(handles)
 net = handles.createNetButton.UserData;
 val = net.trainParam.epochs;
 
 handles.textEpoch.String = val;
 
-% --- Executes on button press in radioSpecie.
-function radioSpecie_Callback(hObject, eventdata, handles)
-
-
-% --- Executes on button press in radioSubspecie.
-function radioSubspecie_Callback(hObject, eventdata, handles)
-
-
 % --------------------------------------------------------------------
 function createDrawing_ClickedCallback(hObject, eventdata, handles)
 a = figure;
-draw_leaf();
-
+draw();
 
 % --- Executes on button press in runNetworkButton.
 function runNetworkButton_Callback(hObject, eventdata, handles)
@@ -815,15 +791,3 @@ out = net(input);
 
 handles.myData.out = out;
 guidata(hObject,handles);
-
-
-% --- Executes when entered data in editable cell(s) in resultsTable.
-function resultsTable_CellEditCallback(hObject, eventdata, handles)
-% hObject    handle to resultsTable (see GCBO)
-% eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
-%	Indices: row and column indices of the cell(s) edited
-%	PreviousData: previous data for the cell(s) edited
-%	EditData: string(s) entered by the user
-%	NewData: EditData or its converted form set on the Data property. Empty if Data was not changed
-%	Error: error string when failed to convert EditData to appropriate value for Data
-% handles    structure with handles and user data (see GUIDATA)
