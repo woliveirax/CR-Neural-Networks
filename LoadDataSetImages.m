@@ -1,37 +1,84 @@
-function [ out ] = LoadDataSetImages(path,optimization)
-    a = dir(fullfile(path,'*.jpg'));
-    n = numel(a);
-    imageArray = cell(n,2);
+function [ images, imageStruct ] = LoadDataSetImages(path)
+    %Obtem o array de quadrados
+    type = 'square';
+    tempPath = fullfile(path, type);  
+    [ squares, tempSize ] = LoadImages(tempPath, type);
+    maxSize = tempSize;
     
-    for i = 1:1:n
-        [trash imageArray{i,1} trash] = fileparts(a(i).name);
-        imageArray{i,1} = str2num(imageArray{i,1});
+    %Obtem o array de circulos
+    type = 'circle';
+    tempPath = fullfile(path, type);    
+    [ circles, tempSize ] = LoadImages(tempPath, type);
+    if(tempSize > maxSize); maxSize = tempSize; end
+    
+    %Obtem o array de triangulos
+    type = 'triangle';
+    tempPath = fullfile(path, type);    
+    [ triangles, tempSize ] = LoadImages(tempPath, type);
+    if(tempSize > maxSize); maxSize = tempSize; end
+    
+    %Obtem o array de circulos
+    type = 'star';
+    tempPath = fullfile(path, type);
+    [ stars, tempSize ] = LoadImages(tempPath, type);
+    if(tempSize > maxSize); maxSize = tempSize; end
+    
+    %Prepara imagens
+    imageStruct = [squares; circles; triangles; stars];
+    [imageQuant, ~] = size(imageStruct);
+    
+    for i = 1 :1: imageQuant
+        image = imageStruct{i,2};
         
-        image = imread(fullfile(path,a(i).name));
-
-        switch optimization
-            %converte para vector binario
-            case 1
-                 image = (image >= 255); %%devolve (true -> 1 ou false -> 0)
-                 
-             %deteção de margens a partir de multiplicação dos pixeis pela máscara de Sobel
-            case 2
-%                 sobel_v = [-1, -2, -1; 0, 0, 0; 1, 2, 1];
-%                 sobel_h = [-1, 0, 1; -2, 0, 2; -1, 0, 1];
-%                 
-%                 borda_v = conv2(double(image),sobel_v);
-%                 borda_h = conv2(image,sobel_h);
-%                 borda_v = borda_v(2:end-1,2:end-1);
-%                 borda_h = borda_h(2:end-1,2:end-1);
-%                 image = borda_v + borda_h;
-        end        
-        
-        image = imresize(image,[500 500]);
-        image = image(:)';
-        
-        imageArray{i,2} = image;
+        %Create blank matrix with max size to copy new image to
+        blank = ones(maxSize)*255;
+        [ imageX, imageY, z ] = size(image);
+        for x = 1 : 1 : imageX
+            for y = 1 : 1 : imageY
+                blank(x,y) = image(x,y);
+            end
+        end
+        %imshow(blank);
+        %drawnow;
+        imageStruct{i,2} = blank(:)';
     end
     
-    imageArray = cell2table(imageArray);
-    out = imageArray;
+    images = cell2table(imageStruct'); %copia a transposta da estrutura de imagens
+    images = images(2,:); %copia somente as imagens da estrutura
+    images = table2array(images); %converte a tabela de imagens em array de imagens para passar como input
+    
+    msgbox('Imagens Carregadas!','Sucesso','help');
+end
+
+function [ imageArray, maxSize ] = LoadImages (tempPath, type)
+files = dir(fullfile(tempPath,'*.png'));
+nFiles = numel(files);
+imageArray = [];
+maxSize = 0;
+
+if(nFiles == 0)
+    return;
+end
+
+imageArray = cell(nFiles,2);
+
+for i = 1:1:nFiles
+    %indica tipo da imagem num campo da estrura
+    imageArray{i,1} = type;
+    
+    %lê imagem do caminho tempPath + filename
+    image = imread(fullfile(tempPath,files(i).name));
+    
+    [x, y, ~] = size(image);
+    if(maxSize < x || maxSize < y)
+        if x > y
+            maxSize = x;
+        else
+            maxSize = y;
+        end
+    end
+    
+    imageArray{i,2} = image;
+end
+
 end
