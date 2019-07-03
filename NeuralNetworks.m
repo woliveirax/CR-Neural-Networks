@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 30-Jun-2019 04:36:40
+% Last Modified by GUIDE v2.5 03-Jul-2019 12:44:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -57,13 +57,9 @@ handles.output = hObject;
 handles.createNetButton.Value = false;
 initData(handles);
 
-data.images.Square = [];
-data.images.Circle = [];
-data.images.Star = [];
-data.images.Triangle = [];
-data.images.Single = [];
-
-data.input = [];
+data.runInput = [];
+data.testImages = [];
+data.testImagesStructure = [];
 data.target = [];
 data.tr = [];
 
@@ -126,17 +122,8 @@ function initData(handles)
     handles.netTrainButton.Enable = 'off';
     handles.netSimButton.Enable = 'off';
     handles.netViewButton.Enable = 'off';
+    handles.selectInputButton.Enable = 'off';
     handles.runNetworkButton.Enable = 'off';
-    handles.runNetworkSpecificButton.Enable = 'off';
-    
-    %Confusion Table
-    set(handles.confusionMatrixTable,'xtick',[])
-    set(handles.confusionMatrixTable,'xticklabel',[])
-    set(handles.confusionMatrixTable,'ytick',[])
-    set(handles.confusionMatrixTable,'yticklabel',[])
-    
-    handles.confusionMatrixTable.Visible = 'off';
-    
     
     
 % --- Outputs from this function are returned to the command line.
@@ -175,8 +162,8 @@ end
 handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
 
+handles.selectInputButton.Enable = 'on';
 %handles.runNetworkButton.Enable = 'on';
-%handles.runNetworkSpecificButton.Enable = 'on';
 handles.createNetButton.UserData = net;
 
 %Update UI
@@ -317,16 +304,17 @@ end
 
 % --- Executes on button press in netTrainButton.
 function netTrainButton_Callback(hObject, eventdata, handles)
-
 %Check if there are data to train
-if(isempty(handles.myData.images))
-    msgbox('Ficheiros para treino não existem. Por favor, importe os dados!','Erro','error');
+if(isempty(handles.myData.testImages))
+    msgbox('Não existem dados para treino!. Por favor, Selecione os dados!','Erro','error');
     return;
 end
 
 %prepare data for training [ sort data add ID to images and etc ]
-images  = handles.myData.images;
-[target input] = PrepareTargetForTraining(images,data,0);
+ images  = handles.myData.testImages;
+ struct = handles.myData.testImagesStructure;
+ 
+[target, input] = PrepareTargetForTraining(images,struct);
 
 %get net from data
 net = handles.createNetButton.UserData;
@@ -338,10 +326,10 @@ disp(tr);
 handles.createNetButton.UserData = net;
 
 handles.myData.tr = tr;
-handles.myData.input = input;
+handles.myData.testImages = input;
 handles.myData.target = target;
-guidata(hObject, handles);
 
+guidata(hObject, handles); %updates data above, on the handles structure
 handles.netSimButton.Enable = 'on';
 
 
@@ -528,26 +516,55 @@ function netSimButton_Callback(hObject, eventdata, handles)
 net = handles.createNetButton.UserData;
 
 tr      = handles.myData.tr;
-input   = handles.myData.input;
+input   = handles.myData.testImages;
 target  = handles.myData.target;
+struct  = handles.myData.testImagesStructure;
 
 out = sim(net, input);
-axis off;
+
 a = figure;
 plotconfusion(target, out);
 
-set(handles.resultsTable,'Data',[]);
+set(handles.resultTable,'ColumnName',{'Type', 'Prediction', 'Wrong?'});
+set(handles.resultTable,'Data',[]);
 
-[x,y,z,w] = confusion(target, out);
-y=y';
 
-set(handles.resultsTable,'Data',y);
 
+[~,y] = size(out);
+wrong = cell(1,y);
+outF = cell(1,y);
+for i = 1 : 1 : y
+    temp = max(out(:,i));
+    switch(temp)
+        case out(1,i)
+            outF(1,i) = cellstr('square');
+        
+        case out(2,i)
+            outF(1,i) = cellstr('circle');
+            
+        case out(3,i)
+            outF(1,i) = cellstr('triangle');
+        
+        case out(4,i)
+            outF(1,i) = cellstr('star');
+    end
+end
+
+for i = 1 : 1 : y
+    if(outF{i} ~= struct{i})
+        wrong(1,i) = true;
+    end
+end
+
+outF = outF';
+struct = struct';
+wrong = wrong';
+
+joined = [outF, struct, wrong];
+
+set(handles.resultTable,'Data',joined);
 handles.textPrecision.String = strcat('Precisão: ',num2str(round(GetPrecision(target,out),2)),'%');
-
 plotperf(tr);
-handles.runNetworkButton.Enable = 'on';
-
 
 
 % --- Executes on button press in netViewButton.
@@ -556,14 +573,12 @@ net = handles.createNetButton.UserData;
 view(net);
 
 
-
 function textEpoch_Callback(hObject, eventdata, handles)
 val = str2double(hObject.String);
 
 if( val < 10 || val > 1000)
     hObject.String = '1000';
 end
-        
 
 
 % --- Executes during object creation, after setting all properties.
@@ -610,6 +625,22 @@ TransfButtonUpdate(handles);
 
 
 
+% --- Executes on button press in selectInputButton.
+function selectInputButton_Callback(hObject, eventdata, handles)
+
+
+% --- Executes during object creation, after setting all properties.
+function resultsPanel_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to resultsPanel (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+
+function confusionMatrixTable_CreateFcn(hObject, eventdata, handles)
+
+function uipanel21_CreateFcn(hObject, eventdata, handles)
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %My Funcs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -646,7 +677,6 @@ handles.evalValBox.String = '0';
 handles.evalValBox.Enable = 'off';
 
 handles.textEpoch.Enable = 'on';
-%handles.textEpoch.String = '1000';
 UpdateEpochs(handles);
 handles.buttonApplyTrainChanges.Enable = 'on';
 
@@ -711,7 +741,7 @@ set(handles.popupTrainFunc,'String',options);
 
 %Function to update Training functions
 function UpdateTrainingFuncs(handles)
-net = handles.createNetButton.UserData;     %get net
+net = handles.createNetButton.UserData;
 fcn = net.trainFcn;
 selected = handles.popupTrainFunc.Value;
 
@@ -722,37 +752,6 @@ else
 end
 
 
-% 
-% try  
-%     handles.myData.images = LoadDataSetImages(path);
-% catch err
-%     msgbox('Não foi possível importar as imagens!','Erro','error');
-% end
-% 
-% msgbox('Imagens importadas com sucesso!','Sucesso','help');
-
-
-% --- Executes on button press in importImageData.
-% function importExcelData_Callback(hObject, eventdata, handles)
-% [filename path] = uigetfile(fullfile(pwd,'Resources','*.xls;*.xlsx'),'Selecione um ficheiro');
-% fullpath = fullfile(path,filename);
-% 
-% if(isequal(path,0)|| isequal(filename,0))
-%     msgbox('Ficheiro não existe','Erro','error');
-%     return;
-% end
-% 
-% handles.myData.excelData = fullpath;
-% try
-%     handles.myData.excelData = LoadDataSetImages(fullpath);
-% catch err
-%     msgbox('Não foi possível importar os dados do ficheiro!','Erro','error');
-%     return;
-% end
-% 
-% msgbox('Dados Importados com sucesso!','Sucesso','help');
-
-
 % --- Executes on button press in importImageData.
 function importImageData_Callback(hObject, eventdata, handles)
 path = uigetdir('.\Resources\','Selecione o repositorio de imagens');
@@ -760,7 +759,33 @@ if(isequal(path,0))
     return;
 end
 
+ if ~exist(fullfile(path,'square'),'dir')
+    msgbox('Pasta de quadrados (\squares) nao existe! Os dados não importados','Erro','error');
+    return;
+ end
+ 
+ if ~exist(fullfile(path,'star'),'dir')
+    msgbox('Pasta de estrelas (\stars) não foi encontrada! Os dados não foram importados','Erro','error');
+    return;
+ end
+ 
+  if ~exist(fullfile(path,'circle'),'dir')
+    msgbox('Pasta de circulos (\circles) não foi encontrada! Os dados não foram importados','Erro','error');
+    return;
+  end
+ 
+  if ~exist(fullfile(path,'triangle'),'dir')
+    msgbox('Pasta de triangulos(\triangles) não foi encontrada! Os dados não foram importados','Erro','error');
+    return;
+  end
+  
+  [images, struct] = LoadDataSetImages(path);
+  
+  handles.myData.testImages = images;
+  handles.myData.testImagesStructure = struct; 
+  
 guidata(hObject, handles);
+
 
 %%Updates Current Training Epochs on the GUI.
 function UpdateEpochs(handles)
@@ -769,25 +794,19 @@ val = net.trainParam.epochs;
 
 handles.textEpoch.String = val;
 
-% --------------------------------------------------------------------
-function createDrawing_ClickedCallback(hObject, eventdata, handles)
-a = figure;
-draw();
 
 % --- Executes on button press in runNetworkButton.
 function runNetworkButton_Callback(hObject, eventdata, handles)
-if(isempty(handles.myData.images))
+if(isempty(handles.myData.runInput))
     %'Ficheiros para treino não existem. Por favor, importe os dados!'
     msgbox('Input inexistente. Por favor, importe os dados para poder iniciar os testes!','Erro','error');
     %importImageData_Callback(hObject.importImageData, eventdata, handles);
     return;
 end
 
-input =  LoadDataSetImages(imgs_path,1);
-
 net = handles.createNetButton.UserData;
 
-out = net(input);
+out = net(handles.myData.runInput);
 
 handles.myData.out = out;
 guidata(hObject,handles);
