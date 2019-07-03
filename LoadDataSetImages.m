@@ -48,6 +48,9 @@ function [ images, imageStruct ] = LoadDataSetImages(path)
     images = images(2,:); %copia somente as imagens da estrutura
     images = table2array(images); %converte a tabela de imagens em array de imagens para passar como input
     
+    imageStruct = cell2table(imageStruct);
+    imageStruct = imageStruct(1,:);
+    imageStruct = table2array(imageStruct);
     msgbox('Imagens Carregadas!','Sucesso','help');
 end
 
