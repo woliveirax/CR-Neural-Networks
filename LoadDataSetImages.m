@@ -43,7 +43,8 @@ function [ images, imageStruct ] = LoadDataSetImages(path)
         imageStruct{i,2} = blank(:)';
     end
     
-    images = cell2table(imageStruct'); %copia a transposta da estrutura de imagens
+    imageStruct = imageStruct';
+    images = cell2table(imageStruct); %copia a transposta da estrutura de imagens
     images = images(2,:); %copia somente as imagens da estrutura
     images = table2array(images); %converte a tabela de imagens em array de imagens para passar como input
     
