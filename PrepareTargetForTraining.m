@@ -1,69 +1,22 @@
-function [target input] = PrepareTargetForTraining(imgs_path, excell_path, bool_subspecie)     % bool_dataset caso tenhamos tempo
+function [target, input] = PrepareTargetForTraining(images, structure)
+input = images;
+target = zeros();
 
-%%Obter info
-%if(!bool_datset) %verificar s info encontra-se em dataset
-dataImages = LoadDataSetImages(imgs_path,0);
-dataClassifications = ReadLeafExcelData(excell_path);
-
-input = dataImages(:,2);
-
-%%Para não realocar memória em cada ciclo:
-num = numel(input);
-target = zeros(num,num);%alocar previamente memória, para máximo possível de targets resultantes, com posterior eliminação de linhas vazias
-
-tab_species = cell(1,numel(input)); %criar previamente memória para máximo possível de especies
-tab_species{1,numel(input)}=[];
-
-%%Função:
-%species_count = 1;
-data_xlsx_pos = 2+bool_subspecie;
-
-for i = 1:numel(input)
-    id = dataImages{i,1};
-    specie_found = 0;
-    specie = [];
-    
-    for j = 1:numel(dataClassifications(:,1)) %obtem especie a partir de id
-        
-        in = dataClassifications{j,1};
-        
-        if( in == id )
-            specie = dataClassifications(j,data_xlsx_pos);
-            break;
-        end
-        
+for i = 1 : 1 : numel(structure)   
+    switch(structure{i})
+        case 'square'
+            target(1,i) = 1;
+            
+        case 'circle'
+            target(2,i) = 1;
+            
+        case 'triangle'
+            target(3,i) = 1;
+            
+        case 'star'
+            target(4,i) = 1;
     end
-    
-    if(isempty(specie))
-        continue;
-    end
-    
-    if(i==1)
-        species_count = 1;
-        tab_species(1,species_count) =  specie; %adiciona 1 especie para comparacao.
-        target(1,1) = 1;
-        continue;
-    end
-    
-    for k = 1 : species_count % procuro         
-        if(strcmpi(tab_species{1,k},specie{1,1}))
-            target(k,i) = 1;
-            specie_found = 1;
-            break;
-        end
-    end
-    
-    if(specie_found == 0)
-        species_count = species_count + 1;
-        tab_species(1,species_count) = specie;
-        target(species_count,i) = 1;
-    end
-    
 end
-
 target( all(~target,2),:)=[]; % remove linhas com tudo a zero(vazias)
-input = table2array(input);
-input = double(input);
-input = input';
 
 end
