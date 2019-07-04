@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 03-Jul-2019 12:44:12
+% Last Modified by GUIDE v2.5 04-Jul-2019 11:27:28
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,9 +55,11 @@ function NeuralNetworks_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for NeuralNetworks
 handles.output = hObject;
 handles.createNetButton.Value = false;
+handles.selectInputButton.Value = false;
 initData(handles);
 
 data.runInput = [];
+data.runImages = [];
 data.testImages = [];
 data.testImagesStructure = [];
 data.target = [];
@@ -118,6 +120,7 @@ function initData(handles)
     
     handles.buttonApplyTrainChanges.Enable = 'off';
     
+    hObject.ForegroundColor = 'red';
     %Buttons
     handles.netTrainButton.Enable = 'off';
     handles.netSimButton.Enable = 'off';
@@ -163,7 +166,6 @@ handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
 
 handles.selectInputButton.Enable = 'on';
-%handles.runNetworkButton.Enable = 'on';
 handles.createNetButton.UserData = net;
 
 %Update UI
@@ -331,7 +333,7 @@ handles.myData.target = target;
 
 guidata(hObject, handles); %updates data above, on the handles structure
 handles.netSimButton.Enable = 'on';
-
+handles.selectInputButton.Enable = 'on';
 
 
 % --- Executes on button press in createNetButton.
@@ -395,7 +397,6 @@ else
 end
 
 
-
 function trainValBox_Callback(hObject, eventdata, handles)
 val = str2double(hObject.String);
 if( val < 0 || val > 100)
@@ -432,7 +433,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
 function testValBox_Callback(hObject, eventdata, handles)
 val = str2double(hObject.String);
 if( val < 0 || val > 100)
@@ -448,7 +448,7 @@ else
         handles.buttonApplyTrainChanges.Enable = 'off';
     end
 end
-        
+
 
 % --- Executes during object creation, after setting all properties.
 function testValBox_CreateFcn(hObject, eventdata, handles)
@@ -524,13 +524,14 @@ out = sim(net, input);
 
 a = figure;
 plotconfusion(target, out);
+set(a,'Name','Resultado Global','NumberTitle','off');
 
+set(handles.resultTable, 'ColumnName',[]);
 set(handles.resultTable,'ColumnName',{'Type', 'Prediction', 'Wrong?'});
 set(handles.resultTable,'Data',[]);
 
-
-
 [~,y] = size(out);
+
 wrong = cell(1,y);
 outF = cell(1,y);
 for i = 1 : 1 : y
@@ -550,20 +551,23 @@ for i = 1 : 1 : y
     end
 end
 
+outF = outF';
+struct = struct';
+
 for i = 1 : 1 : y
-    if(outF{i} ~= struct{i})
-        wrong(1,i) = true;
+    if(~strcmp(outF{i}, struct{i}))
+        wrong(1,i) = cellstr('true');
     end
 end
 
-outF = outF';
-struct = struct';
 wrong = wrong';
 
-joined = [outF, struct, wrong];
+joined = [struct, outF, wrong];
 
 set(handles.resultTable,'Data',joined);
 handles.textPrecision.String = strcat('Precisão: ',num2str(round(GetPrecision(target,out),2)),'%');
+%handles.textPrecision.String = strcat('Precisão:
+%',num2str(round(GetPrecision(target,out),2)),'%'); TODO:
 plotperf(tr);
 
 
@@ -624,9 +628,28 @@ PerceptronTextUpdate(handles);
 TransfButtonUpdate(handles);
 
 
-
 % --- Executes on button press in selectInputButton.
 function selectInputButton_Callback(hObject, eventdata, handles)
+[ files, path ] = uigetfile('*.png','Selecione as images para input','MultiSelect','on');
+if isequal(files, 0)
+    hObject.Value = false;
+    hObject.String = 'Selecione Input';
+    hObject.ForegroundColor = 'red';
+    hObject.FontWeight = 'bold';
+    handles.myData.runInput = [];
+    handles.runNetworkButton.Enable = 'off';
+    return;
+end
+
+%Store net on button userdata 
+hObject.String = 'Input Selecionado';
+hObject.FontWeight = 'bold';
+hObject.ForegroundColor = 'blue';
+
+[handles.myData.runInput, handles.myData.runImages] = LoadSelectedImages(files, path);
+handles.runNetworkButton.Enable = 'on';
+
+guidata(hObject,handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -644,6 +667,8 @@ function uipanel21_CreateFcn(hObject, eventdata, handles)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %My Funcs
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 function UpdateNetConfigForm(handles)
     
@@ -665,16 +690,16 @@ handles.buttonApplyChangesArch.Enable = 'on';
 
 %Treino da Rede Panel
 handles.useAllDataCheckBox.Enable = 'on';
-handles.useAllDataCheckBox.Value = true;
+handles.useAllDataCheckBox.Value = false;
 
-handles.trainValBox.String = '0';
-handles.trainValBox.Enable = 'off';
+handles.trainValBox.String = '75';
+handles.trainValBox.Enable = 'on';
 
-handles.testValBox.String = '0';
-handles.testValBox.Enable = 'off';
+handles.testValBox.String = '15';
+handles.testValBox.Enable = 'on';
 
-handles.evalValBox.String = '0';
-handles.evalValBox.Enable = 'off';
+handles.evalValBox.String = '15';
+handles.evalValBox.Enable = 'on';
 
 handles.textEpoch.Enable = 'on';
 UpdateEpochs(handles);
@@ -804,9 +829,39 @@ if(isempty(handles.myData.runInput))
     return;
 end
 
+images = handles.myData.runImages;
 net = handles.createNetButton.UserData;
-
 out = net(handles.myData.runInput);
 
 handles.myData.out = out;
+
+set(handles.resultTable, 'ColumnName',[]);
+set(handles.resultTable,'ColumnName',{'Image', 'Prediction', 'Wrong?'});
+set(handles.resultTable,'Data',[]);
+
+[~,y] = size(out);
+outF = cell(1,y);
+for i = 1 : 1 : y
+    temp = max(out(:,i));
+    switch(temp)
+        case out(1,i)
+            outF(1,i) = cellstr('square');
+        
+        case out(2,i)
+            outF(1,i) = cellstr('circle');
+            
+        case out(3,i)
+            outF(1,i) = cellstr('triangle');
+        
+        case out(4,i)
+            outF(1,i) = cellstr('star');
+    end
+end
+
+outF = outF';
+images = images';
+
+joined = [images, outF];
+set(handles.resultTable,'Data',joined);
+
 guidata(hObject,handles);
