@@ -130,6 +130,9 @@ function initData(handles)
     handles.selectInputButton.Enable = 'off';
     handles.selectInputButton.ForegroundColor = 'red';
     handles.runNetworkButton.Enable = 'off';
+    handles.exportDataButton.Enable = 'off';
+    
+    set(handles.resultTable,'Data',[]);
     
     
 % --- Outputs from this function are returned to the command line.
@@ -181,6 +184,8 @@ UpdateTrainingFuncs(handles);
 TransfButtonUpdate(handles);
 PerceptronTextUpdate(handles);
 
+set(handles.resultTable,'ColumnName',[]);
+set(handles.resultTable,'Data',[]);
 msgbox('rede carregada com sucesso!','Sucesso','help');
 
 
@@ -605,6 +610,7 @@ end
 handles.textPrecision.String = strcat('Precisão Global: ',num2str(handles.myData.globalPrecision),'%');
 handles.textPrecisionTest.String = strcat('Precisão Teste: ',num2str(handles.myData.testPrecision),'%');
 plotperf(tr);
+handles.exportDataButton.Enable = 'on';
 guidata(hObject,handles);
 
 
@@ -899,6 +905,7 @@ images = images';
 
 joined = [images, outF];
 set(handles.resultTable,'Data',joined);
+handles.exportDataButton.Enable = 'on';
 
 guidata(hObject,handles);
 
@@ -936,5 +943,9 @@ end
 
 tableData = [columnData; table];
 data = [precisionData; tableData];
-
-xlswrite(filename,data);
+try
+    xlswrite(filename,data);
+catch err
+    msgbox('Erro ao guarda! verifique se o ficheiro esta aberto ou o excel está instalado!', 'Erro ao guardar','error');
+end
+    
