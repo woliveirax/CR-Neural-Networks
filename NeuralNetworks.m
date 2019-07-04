@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 04-Jul-2019 11:27:28
+% Last Modified by GUIDE v2.5 04-Jul-2019 20:54:47
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -123,12 +123,12 @@ function initData(handles)
     
     handles.buttonApplyTrainChanges.Enable = 'off';
     
-    hObject.ForegroundColor = 'red';
     %Buttons
     handles.netTrainButton.Enable = 'off';
     handles.netSimButton.Enable = 'off';
     handles.netViewButton.Enable = 'off';
     handles.selectInputButton.Enable = 'off';
+    handles.selectInputButton.ForegroundColor = 'red';
     handles.runNetworkButton.Enable = 'off';
     
     
@@ -186,7 +186,7 @@ msgbox('rede carregada com sucesso!','Sucesso','help');
 
 % --------------------------------------------------------------------
 function menuBarAbout_Callback(hObject, eventdata, handles)
-
+AboutDialog
 
 % --------------------------------------------------------------------
 function menuBarSave_Callback(hObject, eventdata, handles)
@@ -605,6 +605,7 @@ end
 handles.textPrecision.String = strcat('Precisão Global: ',num2str(handles.myData.globalPrecision),'%');
 handles.textPrecisionTest.String = strcat('Precisão Teste: ',num2str(handles.myData.testPrecision),'%');
 plotperf(tr);
+guidata(hObject,handles);
 
 
 % --- Executes on button press in netViewButton.
@@ -872,7 +873,7 @@ out = net(handles.myData.runInput);
 handles.myData.out = out;
 
 set(handles.resultTable, 'ColumnName',[]);
-set(handles.resultTable,'ColumnName',{'Image', 'Prediction', 'Wrong?'});
+set(handles.resultTable,'ColumnName',{'Image', 'Prediction'});
 set(handles.resultTable,'Data',[]);
 
 [~,y] = size(out);
@@ -901,3 +902,40 @@ joined = [images, outF];
 set(handles.resultTable,'Data',joined);
 
 guidata(hObject,handles);
+
+
+% --- Executes on button press in exportDataButton.
+function exportDataButton_Callback(hObject, eventdata, handles)
+% hObject    handle to exportDataButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[file,path] = uiputfile('*.xlsx','Exportar Dados','tabela');
+if isequal(file,0) || isequal(path,0)
+    return;
+end
+
+if exist(fullfile(path,file), 'file') == 2
+  delete(fullfile(path,file));
+end
+
+filename = fullfile(path,file);
+precisionData = {'Precisão Global','Precisão dos Testes', ' '; handles.myData.globalPrecision, handles.myData.testPrecision, ''};
+
+columnData = handles.resultTable.ColumnName';
+table = handles.resultTable.Data;
+
+[x,y] = size(table);
+if x <= 0
+    msgbox('Não existem dados na tabela para que seja necessário exportar!','Erro','error');
+    return;
+end
+
+if(y == 2)
+    table{3} = '';
+    columnData{3} = '';
+end
+
+tableData = [columnData; table];
+data = [precisionData; tableData];
+
+xlswrite(filename,data);
