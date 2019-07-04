@@ -166,7 +166,7 @@ catch err
 end
 
 [x,~] = size(net.layers);
-handles.popupSelectLayers.Value = x;
+handles.popupSelectLayers.Value = x-1;
 
 handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
@@ -191,7 +191,7 @@ AboutDialog
 % --------------------------------------------------------------------
 function menuBarSave_Callback(hObject, eventdata, handles)
 net = handles.createNetButton.UserData;
-[file,path] = uiputfile('*.mat','Save File','net');
+[file,path] = uiputfile('*.mat','Save File');
 
 if(isequal(file,0) || isequal(path,0))
     return;
@@ -795,10 +795,9 @@ options = options';
 set(handles.popupFuncTrans,'String',options);
 
 options = [];
-options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgb','traincgf','trainbr','trainbfg','trainbfgc'};
+options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgf','trainbr','trainbfg','trainbfgc'};
 options = options';
 set(handles.popupTrainFunc,'String',options);
-
 
 
 %Function to update Training functions
