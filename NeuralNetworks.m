@@ -165,6 +165,9 @@ catch err
     return;
 end
 
+[x,~] = size(net.layers);
+handles.popupSelectLayers.Value = x;
+
 handles.createNetButton.Value=true;
 updateCreatNetButton(handles);
 
