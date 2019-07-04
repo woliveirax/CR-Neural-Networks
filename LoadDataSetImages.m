@@ -31,11 +31,13 @@ function [ images, imageStruct ] = LoadDataSetImages(path)
         image = imageStruct{i,2};
         
         %Create blank matrix with max size to copy new image to
-        blank = ones(maxSize)*255;
-        [ imageX, imageY, ~] = size(image);
+        [ imageX, imageY, imageZ] = size(image);
+        blank = ones(maxSize,maxSize, imageZ)*255;
         for x = 1 : 1 : imageX
             for y = 1 : 1 : imageY
-                blank(x,y) = image(x,y);
+                for z = 1: 1 : imageZ
+                    blank(x,y,z) = image(x,y,z);
+                end
             end
         end
         %imshow(blank);
@@ -45,8 +47,8 @@ function [ images, imageStruct ] = LoadDataSetImages(path)
     
     imageStruct = imageStruct';
     images = cell2table(imageStruct); %copia a transposta da estrutura de imagens
-    images = images(2,:); %copia somente as imagens da estrutura
-    images = table2array(images); %converte a tabela de imagens em array de imagens para passar como input
+    images = images(2,:);             %copia somente as imagens da estrutura
+    images = table2array(images);     %converte a tabela de imagens em array de imagens para passar como input
     
     %puts the input in the right format
     x = zeros(numel(images{1,1}),numel(images));
