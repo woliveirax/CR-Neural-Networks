@@ -65,6 +65,9 @@ data.testImagesStructure = [];
 data.target = [];
 data.tr = [];
 
+data.globalPrecision = [];
+data.testPrecision = [];
+
 handles.myData = data;
 % Update handles structure
 guidata(hObject, handles);
@@ -520,54 +523,84 @@ input   = handles.myData.testImages;
 target  = handles.myData.target;
 struct  = handles.myData.testImagesStructure;
 
+testData = handles.useAllDataCheckBox.Value == false;
+
+%Global simulation regarding all data
 out = sim(net, input);
 
 a = figure;
 plotconfusion(target, out);
-set(a,'Name','Resultado Global','NumberTitle','off');
+set(a,'Name','Resultados Globais','NumberTitle','off');
+
+%Test data simulation, only regarding the test data
+if(testData)
+    Tinput = input(:, tr.testInd);
+    Ttarget = target(:, tr.testInd);
+    Tstruct = struct(:, tr.testInd);
+    
+    Tout = sim(net, Tinput);
+    
+    a = figure;
+    plotconfusion(Ttarget, Tout);
+    set(a,'Name','Resultados dos Testes','NumberTitle','off');
+else
+    Tinput = input;
+    Ttarget = target;
+    Tstruct = struct;
+    Tout = out;
+end
 
 set(handles.resultTable, 'ColumnName',[]);
 set(handles.resultTable,'ColumnName',{'Type', 'Prediction', 'Wrong?'});
 set(handles.resultTable,'Data',[]);
 
-[~,y] = size(out);
-
+[~,y] = size(Tout);
 wrong = cell(1,y);
 outF = cell(1,y);
 for i = 1 : 1 : y
-    temp = max(out(:,i));
+    temp = max(Tout(:,i));
     switch(temp)
-        case out(1,i)
+        case Tout(1,i)
             outF(1,i) = cellstr('square');
         
-        case out(2,i)
+        case Tout(2,i)
             outF(1,i) = cellstr('circle');
             
-        case out(3,i)
+        case Tout(3,i)
             outF(1,i) = cellstr('triangle');
         
-        case out(4,i)
+        case Tout(4,i)
             outF(1,i) = cellstr('star');
     end
 end
 
 outF = outF';
-struct = struct';
+Tstruct = Tstruct';
 
 for i = 1 : 1 : y
-    if(~strcmp(outF{i}, struct{i}))
+    if(~strcmp(outF{i}, Tstruct{i}))
         wrong(1,i) = cellstr('true');
     end
 end
 
 wrong = wrong';
+joined = [Tstruct, outF, wrong];
 
-joined = [struct, outF, wrong];
-
+%Set data into the uitable
 set(handles.resultTable,'Data',joined);
-handles.textPrecision.String = strcat('Precisão: ',num2str(round(GetPrecision(target,out),2)),'%');
-%handles.textPrecision.String = strcat('Precisão:
-%',num2str(round(GetPrecision(target,out),2)),'%'); TODO:
+
+%Store precision
+handles.myData.globalPrecision = round(GetPrecision(target,out),2);
+
+if(testData)
+    handles.myData.testPrecision = round(GetPrecision(Ttarget,Tout),2);
+else
+    handles.myData.testPrecision = 0;
+end
+
+%Display precision
+handles.textPrecision.String = strcat('Precisão Global: ',num2str(handles.myData.globalPrecision),'%');
+handles.textPrecisionTest.String = strcat('Precisão Teste: ',num2str(handles.myData.testPrecision),'%');
 plotperf(tr);
 
 
