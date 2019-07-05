@@ -22,7 +22,7 @@ function varargout = NeuralNetworks(varargin)
 
 % Edit the above text to modify the response to help NeuralNetworks
 
-% Last Modified by GUIDE v2.5 04-Jul-2019 20:54:47
+% Last Modified by GUIDE v2.5 05-Jul-2019 11:34:41
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,7 +55,7 @@ function NeuralNetworks_OpeningFcn(hObject, eventdata, handles, varargin)
 % Choose default command line output for NeuralNetworks
 handles.output = hObject;
 handles.createNetButton.Value = false;
-handles.selectInputButton.Value = false;
+handles.selectInputButton.Value = 0;
 initData(handles);
 
 data.runInput = [];
