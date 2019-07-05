@@ -164,7 +164,7 @@ end
 try
    load(fullfile(path,file),'net');
 catch err
-    msgbox('Não foi possivel carregar a rede! error:' + err.message,'Erro','error');
+    msgbox('Nï¿½o foi possivel carregar a rede! error:' + err.message,'Erro','error');
     return;
 end
 
@@ -205,7 +205,7 @@ end
 try
    save(fullfile(path,file),'net');
 catch err
-    msgbox('Não foi possivel guardar a rede! error:' + err.message,'Erro','error');
+    msgbox('Nï¿½o foi possivel guardar a rede! error:' + err.message,'Erro','error');
     return;
 end
 msgbox('rede guardada com sucesso!','Sucesso','help');
@@ -319,7 +319,7 @@ end
 function netTrainButton_Callback(hObject, eventdata, handles)
 %Check if there are data to train
 if(isempty(handles.myData.testImages))
-    msgbox('Não existem dados para treino!. Por favor, Selecione os dados!','Erro','error');
+    msgbox('Nï¿½o existem dados para treino!. Por favor, Selecione os dados!','Erro','error');
     return;
 end
 
@@ -393,8 +393,6 @@ if(hObject.Value == true)
     handles.testValBox.String = '0';
     handles.evalValBox.String = '0';
     
-    handles.buttonApplyTrainChanges.Enable = 'on';
-    
 else
     net = handles.createNetButton.UserData;
     net.divideFcn = 'dividerand';
@@ -402,7 +400,6 @@ else
     handles.trainValBox.Enable = 'on';
     handles.testValBox.Enable = 'on';
     handles.evalValBox.Enable = 'on';
-    handles.buttonApplyTrainChanges.Enable = 'off';
     
     handles.createNetButton.UserData = net;
 end
@@ -607,8 +604,8 @@ else
 end
 
 %Display precision
-handles.textPrecision.String = strcat('Precisão Global: ',num2str(handles.myData.globalPrecision),'%');
-handles.textPrecisionTest.String = strcat('Precisão Teste: ',num2str(handles.myData.testPrecision),'%');
+handles.textPrecision.String = strcat('Precisï¿½o Global: ',num2str(handles.myData.globalPrecision),'%');
+handles.textPrecisionTest.String = strcat('Precisï¿½o Teste: ',num2str(handles.myData.testPrecision),'%');
 plotperf(tr);
 handles.exportDataButton.Enable = 'on';
 guidata(hObject,handles);
@@ -827,22 +824,22 @@ if(isequal(path,0))
 end
 
  if ~exist(fullfile(path,'square'),'dir')
-    msgbox('Pasta de quadrados (\squares) nao existe! Os dados não importados','Erro','error');
+    msgbox('Pasta de quadrados (\squares) nao existe! Os dados nï¿½o importados','Erro','error');
     return;
  end
  
  if ~exist(fullfile(path,'star'),'dir')
-    msgbox('Pasta de estrelas (\stars) não foi encontrada! Os dados não foram importados','Erro','error');
+    msgbox('Pasta de estrelas (\stars) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
     return;
  end
  
   if ~exist(fullfile(path,'circle'),'dir')
-    msgbox('Pasta de circulos (\circles) não foi encontrada! Os dados não foram importados','Erro','error');
+    msgbox('Pasta de circulos (\circles) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
     return;
   end
  
   if ~exist(fullfile(path,'triangle'),'dir')
-    msgbox('Pasta de triangulos(\triangles) não foi encontrada! Os dados não foram importados','Erro','error');
+    msgbox('Pasta de triangulos(\triangles) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
     return;
   end
   
@@ -865,7 +862,7 @@ handles.textEpoch.String = val;
 % --- Executes on button press in runNetworkButton.
 function runNetworkButton_Callback(hObject, eventdata, handles)
 if(isempty(handles.myData.runInput))
-    %'Ficheiros para treino não existem. Por favor, importe os dados!'
+    %'Ficheiros para treino nï¿½o existem. Por favor, importe os dados!'
     msgbox('Input inexistente. Por favor, importe os dados para poder iniciar os testes!','Erro','error');
     %importImageData_Callback(hObject.importImageData, eventdata, handles);
     return;
@@ -925,14 +922,14 @@ if exist(fullfile(path,file), 'file') == 2
 end
 
 filename = fullfile(path,file);
-precisionData = {'Precisão Global','Precisão dos Testes', ' '; handles.myData.globalPrecision, handles.myData.testPrecision, ''};
+precisionData = {'Precisï¿½o Global','Precisï¿½o dos Testes', ' '; handles.myData.globalPrecision, handles.myData.testPrecision, ''};
 
 columnData = handles.resultTable.ColumnName';
 table = handles.resultTable.Data;
 
 [x,y] = size(table);
 if x <= 0
-    msgbox('Não existem dados na tabela para que seja necessário exportar!','Erro','error');
+    msgbox('Nï¿½o existem dados na tabela para que seja necessï¿½rio exportar!','Erro','error');
     return;
 end
 
@@ -946,6 +943,6 @@ data = [precisionData; tableData];
 try
     xlswrite(filename,data);
 catch err
-    msgbox('Erro ao guarda! verifique se o ficheiro esta aberto ou o excel está instalado!', 'Erro ao guardar','error');
+    msgbox('Erro ao guarda! verifique se o ficheiro esta aberto ou o excel estï¿½ instalado!', 'Erro ao guardar','error');
 end
     
