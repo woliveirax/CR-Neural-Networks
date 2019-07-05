@@ -42,6 +42,7 @@ for i = 1 :1: imageQuant
             end
         end
     end
+    blank = im2bw(blank);
     imageStruct{i} = uint8(blank(:)');
 end
 

@@ -40,6 +40,7 @@ function [ images, imageStruct ] = LoadDataSetImages(path)
                 end
             end
         end
+        blank = im2bw(blank);
         %imshow(blank);
         %drawnow;
         imageStruct{i,2} = uint8(blank(:)');
