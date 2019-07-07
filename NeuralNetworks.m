@@ -945,8 +945,8 @@ if x <= 0
 end
 
 if(y == 2)
-    table{3} = '';
-    columnData{3} = '';
+    table{3,3} = ' ';
+    columnData{3} = ' ';
 end
 
 tableData = [columnData; table];
