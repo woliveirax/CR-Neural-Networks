@@ -164,7 +164,7 @@ end
 try
    load(fullfile(path,file),'net');
 catch err
-    msgbox('Nï¿½o foi possivel carregar a rede! error:' + err.message,'Erro','error');
+    msgbox(sprintf('Nï¿½o foi possivel carregar a rede! error: %s',err.message),'Erro','error');
     return;
 end
 
@@ -331,7 +331,16 @@ end
 
 %get net from data
 net = handles.createNetButton.UserData;
+try
+tic
 [net,tr] = train(net, input, target);
+time = toc
+time = round(time,2);
+
+catch err
+    msgbox(sprintf('Erro ao treinar a rede! %s',err.message),'Erro','error');
+    return;
+end
 
 view(net);
 disp(tr);
@@ -345,6 +354,8 @@ handles.myData.target = target;
 guidata(hObject, handles); %updates data above, on the handles structure
 handles.netSimButton.Enable = 'on';
 handles.selectInputButton.Enable = 'on';
+
+msgbox(sprintf('time %d',time),'time','help');
 
 
 % --- Executes on button press in createNetButton.
@@ -798,7 +809,7 @@ options = options';
 set(handles.popupFuncTrans,'String',options);
 
 options = [];
-options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgf','trainbr','trainbfg','trainbfgc'};
+options = {'traingdx','traincgp','traincgb','trainoss','traingdm','trainrp','trainscg','traincgf','trainbr','trainbfg'};
 options = options';
 set(handles.popupTrainFunc,'String',options);
 
@@ -824,22 +835,22 @@ if(isequal(path,0))
 end
 
  if ~exist(fullfile(path,'square'),'dir')
-    msgbox('Pasta de quadrados (\squares) nao existe! Os dados nï¿½o importados','Erro','error');
+    msgbox('Pasta de quadrados (\square) nao existe! Dados não importados','Erro','error');
     return;
  end
  
  if ~exist(fullfile(path,'star'),'dir')
-    msgbox('Pasta de estrelas (\stars) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
+    msgbox('Pasta de estrelas (\star) nï¿½o foi encontrada! Dados não importados','Erro','error');
     return;
  end
  
   if ~exist(fullfile(path,'circle'),'dir')
-    msgbox('Pasta de circulos (\circles) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
+    msgbox('Pasta de circulos (\circle) nï¿½o foi encontrada! Dados não importados','Erro','error');
     return;
   end
  
   if ~exist(fullfile(path,'triangle'),'dir')
-    msgbox('Pasta de triangulos(\triangles) nï¿½o foi encontrada! Os dados nï¿½o foram importados','Erro','error');
+    msgbox('Pasta de triangulos(\triangle) nï¿½o foi encontrada! Dados não importados','Erro','error');
     return;
   end
   
