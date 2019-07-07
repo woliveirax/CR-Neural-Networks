@@ -164,7 +164,7 @@ end
 try
    load(fullfile(path,file),'net');
 catch err
-    msgbox(sprintf('Nï¿½o foi possivel carregar a rede! error: %s',err.message),'Erro','error');
+    msgbox(sprintf('Não foi possivel carregar a rede! error: %s',err.message),'Erro','error');
     return;
 end
 
@@ -205,7 +205,7 @@ end
 try
    save(fullfile(path,file),'net');
 catch err
-    msgbox('Nï¿½o foi possivel guardar a rede! error:' + err.message,'Erro','error');
+    msgbox('Não foi possivel guardar a rede! error:' + err.message,'Erro','error');
     return;
 end
 msgbox('rede guardada com sucesso!','Sucesso','help');
@@ -319,7 +319,7 @@ end
 function netTrainButton_Callback(hObject, eventdata, handles)
 %Check if there are data to train
 if(isempty(handles.myData.testImages))
-    msgbox('Nï¿½o existem dados para treino!. Por favor, Selecione os dados!','Erro','error');
+    msgbox('Não existem dados para treino!. Por favor, Selecione os dados!','Erro','error');
     return;
 end
 
@@ -615,8 +615,8 @@ else
 end
 
 %Display precision
-handles.textPrecision.String = strcat('Precisï¿½o Global: ',num2str(handles.myData.globalPrecision),'%');
-handles.textPrecisionTest.String = strcat('Precisï¿½o Teste: ',num2str(handles.myData.testPrecision),'%');
+handles.textPrecision.String = strcat('Precisão Global: ',num2str(handles.myData.globalPrecision),'%');
+handles.textPrecisionTest.String = strcat('Precisão Teste: ',num2str(handles.myData.testPrecision),'%');
 plotperf(tr);
 handles.exportDataButton.Enable = 'on';
 guidata(hObject,handles);
@@ -840,17 +840,17 @@ end
  end
  
  if ~exist(fullfile(path,'star'),'dir')
-    msgbox('Pasta de estrelas (\star) nï¿½o foi encontrada! Dados não importados','Erro','error');
+    msgbox('Pasta de estrelas (\star) Não foi encontrada! Dados não importados','Erro','error');
     return;
  end
  
   if ~exist(fullfile(path,'circle'),'dir')
-    msgbox('Pasta de circulos (\circle) nï¿½o foi encontrada! Dados não importados','Erro','error');
+    msgbox('Pasta de circulos (\circle) Não foi encontrada! Dados não importados','Erro','error');
     return;
   end
  
   if ~exist(fullfile(path,'triangle'),'dir')
-    msgbox('Pasta de triangulos(\triangle) nï¿½o foi encontrada! Dados não importados','Erro','error');
+    msgbox('Pasta de triangulos(\triangle) Não foi encontrada! Dados não importados','Erro','error');
     return;
   end
   
@@ -873,7 +873,7 @@ handles.textEpoch.String = val;
 % --- Executes on button press in runNetworkButton.
 function runNetworkButton_Callback(hObject, eventdata, handles)
 if(isempty(handles.myData.runInput))
-    %'Ficheiros para treino nï¿½o existem. Por favor, importe os dados!'
+    %'Ficheiros para treino Não existem. Por favor, importe os dados!'
     msgbox('Input inexistente. Por favor, importe os dados para poder iniciar os testes!','Erro','error');
     %importImageData_Callback(hObject.importImageData, eventdata, handles);
     return;
@@ -933,14 +933,14 @@ if exist(fullfile(path,file), 'file') == 2
 end
 
 filename = fullfile(path,file);
-precisionData = {'Precisï¿½o Global','Precisï¿½o dos Testes', ' '; handles.myData.globalPrecision, handles.myData.testPrecision, ''};
+precisionData = {'Precisão Global','Precisão dos Testes', ' '; handles.myData.globalPrecision, handles.myData.testPrecision, ''};
 
 columnData = handles.resultTable.ColumnName';
 table = handles.resultTable.Data;
 
 [x,y] = size(table);
 if x <= 0
-    msgbox('Nï¿½o existem dados na tabela para que seja necessï¿½rio exportar!','Erro','error');
+    msgbox('Não existem dados na tabela para que seja necessï¿½rio exportar!','Erro','error');
     return;
 end
 
@@ -954,6 +954,6 @@ data = [precisionData; tableData];
 try
     xlswrite(filename,data);
 catch err
-    msgbox('Erro ao guarda! verifique se o ficheiro esta aberto ou o excel estï¿½ instalado!', 'Erro ao guardar','error');
+    msgbox('Erro ao guardar! verifique se o ficheiro esta aberto ou o excel está instalado!', 'Erro ao guardar','error');
 end
     
